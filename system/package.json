@@ -1,0 +1,22 @@
+{
+	"name": "system",
+	"version": "1.0.0",
+	"description": "Backend system",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node src/index.js",
+		"dbshell": "docker exec -it system-db-1 bash",
+		"sysshell": "docker exec -it system-server-1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/damians13/stock-tracker.git"
+	},
+	"author": "Damian Suidgeest",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/damians13/stock-tracker/issues"
+	},
+	"homepage": "https://github.com/damians13/stock-tracker#readme"
+}

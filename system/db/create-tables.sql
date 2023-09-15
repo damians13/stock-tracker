@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS User (
+	id SERIAL PRIMARY KEY,
+	name TEXT NOT NULL,
+	email TEXT NOT NULL,
+	password_hash CHAR(64) NOT NULL,
+	password_salt CHAR(64) NOT NULL,
+	password_date DATE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Portfolio (
+	id SERIAL FOREIGN KEY REFERENCES User,
+	name TEXT NOT NULL,
+	PRIMARY KEY (id, name)
+);

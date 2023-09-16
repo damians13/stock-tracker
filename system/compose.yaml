@@ -18,6 +18,8 @@ services:
         depends_on:
             db:
                 condition: service_healthy
+        volumes:
+            - .env:/usr/src/app/.env
 
     db:
         build:

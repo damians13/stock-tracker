@@ -20,12 +20,12 @@
 	},
 	"homepage": "https://github.com/damians13/stock-tracker#readme",
 	"dependencies": {
+		"dotenv": "^16.3.1",
 		"postgres": "^3.3.5"
 	},
 	"devDependencies": {
 		"@tsconfig/node14": "^14.1.0",
 		"@types/node": "^20.6.2",
-		"dotenv": "^16.3.1",
 		"typescript": "^5.2.2"
 	}
 }

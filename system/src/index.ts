@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv"
 
-dotenv.config({ path: __dirname + "\\..\\.env" })
+dotenv.config({ path: __dirname + "/../.env" })
 
 console.log(process.env.POSTGRES_USER)
 

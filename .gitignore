@@ -1,2 +1,4 @@
 system/.env
 notes.txt
+system/dist
+node_modules

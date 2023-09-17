@@ -1,13 +1,15 @@
 import * as dotenv from "dotenv"
+import express from "express"
 
 dotenv.config({ path: __dirname + "/../.env" })
 
-console.log(process.env.POSTGRES_USER)
+const app = express()
+const port = 8000
 
-// const sql = postgres(`postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@0.0.0.0:5432/postgres`)
+app.get("/", (req, res) => {
+	res.send("Hello World!")
+})
 
-// async function test() {
-// 	return await sql`SELECT * FROM Account`
-// }
-
-// console.log(test())
+app.listen(port, () => {
+	console.log(`Example app listening on port ${port}`)
+})

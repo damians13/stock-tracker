@@ -2,10 +2,11 @@
 	"name": "system",
 	"version": "1.0.0",
 	"description": "Backend system",
+	"type": "module",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "npx tsc && node dist/index.js",
+		"start": "npx tsc && node --experimental-modules dist/index.js",
 		"dbshell": "docker exec -it system-db-1 bash",
 		"sysshell": "docker exec -it system-server-1"
 	},

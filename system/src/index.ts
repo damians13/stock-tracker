@@ -1,14 +1,14 @@
 import * as dotenv from "dotenv"
 import express from "express"
-import { Client } from "pg"
-import apiRouter from "./api/router"
+import pg from "pg"
+import apiRouter from "./api/router.js"
 
-dotenv.config({ path: __dirname + "/../.env" })
+dotenv.config()
 
 const app = express()
 const port = 8000
 
-const pg = new Client({
+const db = new pg.Client({
 	host: "db",
 	port: 5432,
 	database: process.env.PGDATABASE,
@@ -16,25 +16,24 @@ const pg = new Client({
 	password: process.env.POSTGRES_PASSWORD,
 })
 
-// Bind the API router to the application
+// Bind a router to the application to handle API requests in separate files
 app.use("/api", apiRouter)
 
 app.get("/", async (req, res) => {
 	res.send("Hello World!")
 
-	console.log("Connected to database")
-	let result = await pg.query("SELECT * FROM Account")
+	let result = await db.query("SELECT * FROM Account")
 	console.log(result)
 })
 
 app.listen(port, async () => {
-	await pg.connect()
+	await db.connect()
 	console.log(`System server connected to db and listening on port ${port}`)
 })
 
 async function cleanup(exitCode: number | undefined = 0) {
 	// Close the connection to the database
-	await pg.end()
+	await db.end()
 	process.exit(exitCode)
 }
 

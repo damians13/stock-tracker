@@ -27,10 +27,10 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 USER node
 
 # Copy the rest of the source files into the image.
-COPY dist dist
+COPY . .
 
 # Expose the port that the application listens on.
 EXPOSE 8000
 
 # Run the application.
-CMD node dist/index.js
+CMD node --experimental-modules dist/index.js

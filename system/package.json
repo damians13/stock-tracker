@@ -8,7 +8,8 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "npx tsc && node --experimental-modules dist/index.js",
 		"dbshell": "docker exec -it system-db-1 bash",
-		"sysshell": "docker exec -it system-server-1"
+		"sysshell": "docker exec -it system-server-1",
+		"restart": "docker compose down && docker image rm system-server && npx tsc && docker compose up"
 	},
 	"repository": {
 		"type": "git",

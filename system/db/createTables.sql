@@ -3,10 +3,10 @@
 CREATE TABLE IF NOT EXISTS Account (
 	id SERIAL PRIMARY KEY,
 	name TEXT NOT NULL,
-	email TEXT NOT NULL,
-	password_hash CHAR(64) NOT NULL,
-	password_salt CHAR(64) NOT NULL,
-	password_date DATE NOT NULL
+	email TEXT NOT NULL UNIQUE,
+	password_hash CHAR(60) NOT NULL,
+	password_salt CHAR(29) NOT NULL,
+	registered_date DATE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Portfolio (
@@ -22,11 +22,11 @@ INSERT INTO Account (
 	email,
 	password_hash,
 	password_salt,
-	password_date
+	registered_date
 ) VALUES (
 	'test',
 	'test@gmail.com',
-	'9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-	'9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+	'$2b$10$V8DMEZF6gh3t/9F9OSL8luBNkXVFfT8YMo/MF02f2neiU4g2F0WTC',
+	'$2b$10$V8DMEZF6gh3t/9F9OSL8lu',
 	'2023-09-21'
 );

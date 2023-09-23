@@ -1,8 +1,8 @@
-import express, { Router } from "express"
+import { Router } from "express"
 import db from "../db.js"
 import bcrypt from "bcrypt"
 
-const router = express.Router()
+const router = Router()
 
 router.get("/", (req, res) => {
 	res.send("Login time")
@@ -14,7 +14,7 @@ router.post("/", async (req, res) => {
 	if (queryResponse.rowCount === 0) {
 		// No user in the database with that email
 		res.status(404)
-		res.send("There is no registered account with email address.")
+		res.send("There is no registered account with that email address.")
 		return
 	}
 

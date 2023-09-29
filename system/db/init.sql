@@ -5,8 +5,7 @@ CREATE TABLE IF NOT EXISTS Account (
 	name TEXT NOT NULL,
 	email TEXT NOT NULL UNIQUE,
 	password_hash CHAR(60) NOT NULL,
-	password_salt CHAR(29) NOT NULL,
-	registered_date DATE NOT NULL
+	password_salt CHAR(29) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Portfolio (
@@ -21,12 +20,10 @@ INSERT INTO Account (
 	name,
 	email,
 	password_hash,
-	password_salt,
-	registered_date
+	password_salt
 ) VALUES (
 	'test',
 	'test@gmail.com',
 	'$2b$10$V8DMEZF6gh3t/9F9OSL8luBNkXVFfT8YMo/MF02f2neiU4g2F0WTC',
-	'$2b$10$V8DMEZF6gh3t/9F9OSL8lu',
-	'2023-09-21'
+	'$2b$10$V8DMEZF6gh3t/9F9OSL8lu'
 );

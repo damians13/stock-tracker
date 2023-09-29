@@ -35,14 +35,12 @@ router.post("/", async (req, res) => {
 		name,
 		email,
 		password_hash,
-		password_salt,
-		registered_date
+		password_salt
 	) VALUES (
 		'${req.body.name}',
 		'${req.body.email}',
 		'${hash}',
-		'${salt}',
-		'${dateString}'
+		'${salt}'
 	)`)
 
 	res.status(201)

@@ -1,6 +1,6 @@
 /* Create the tables */
 
-CREATE TABLE IF NOT EXISTS Account (
+CREATE TABLE IF NOT EXISTS account (
 	id SERIAL PRIMARY KEY,
 	name TEXT NOT NULL,
 	email TEXT NOT NULL UNIQUE,
@@ -8,15 +8,15 @@ CREATE TABLE IF NOT EXISTS Account (
 	password_salt CHAR(29) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS Portfolio (
+CREATE TABLE IF NOT EXISTS portfolio (
 	id SERIAL NOT NULL,
 	name TEXT NOT NULL,
 	PRIMARY KEY (id, name),
-	FOREIGN KEY (id) REFERENCES Account
+	FOREIGN KEY (id) REFERENCES account
 );
 
 /* Insert test data */
-INSERT INTO Account (
+INSERT INTO account (
 	name,
 	email,
 	password_hash,

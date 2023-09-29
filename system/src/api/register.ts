@@ -5,7 +5,7 @@ import bcrypt from "bcrypt"
 const router = Router()
 
 router.post("/", async (req, res) => {
-	let queryResponse = await db.query(`SELECT * FROM Account WHERE EMAIL = '${req.body.email}'`)
+	let queryResponse = await db.query(`SELECT * FROM account WHERE EMAIL = '${req.body.email}'`)
 
 	if (queryResponse.rowCount !== 0) {
 		// There is already a user registered with that email
@@ -31,7 +31,7 @@ router.post("/", async (req, res) => {
 	const hash = await bcrypt.hash(req.body.password, salt)
 
 	// Create the account
-	db.query(`INSERT INTO Account (
+	db.query(`INSERT INTO account (
 		name,
 		email,
 		password_hash,

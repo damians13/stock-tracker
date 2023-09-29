@@ -9,7 +9,7 @@ router.get("/", (req, res) => {
 })
 
 router.post("/", async (req, res) => {
-	let queryResponse = await db.query(`SELECT * FROM Account WHERE EMAIL = '${req.body.email}'`)
+	let queryResponse = await db.query(`SELECT * FROM account WHERE EMAIL = '${req.body.email}'`)
 
 	if (queryResponse.rowCount === 0) {
 		// No user in the database with that email

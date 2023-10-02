@@ -1,7 +1,7 @@
 import "dotenv/config"
 import express from "express"
 import apiRouter from "./api/router.js"
-import db from "./db.js"
+import db from "./util/db.js"
 
 const app = express()
 const port = 8000

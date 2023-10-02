@@ -1,5 +1,5 @@
 import { Router } from "express"
-import db from "../db.js"
+import db from "../util/db.js"
 import bcrypt from "bcrypt"
 
 const router = Router()

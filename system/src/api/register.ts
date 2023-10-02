@@ -1,6 +1,8 @@
 import { Router } from "express"
-import db from "../db.js"
+import db from "../util/db.js"
 import bcrypt from "bcrypt"
+import { AccountEventType, logAccountEvent } from "../util/log.js"
+import { getDateTime } from "../util/dateTime.js"
 
 const router = Router()
 
@@ -14,37 +16,54 @@ router.post("/", async (req, res) => {
 		return
 	}
 
-	const dateObj = new Date()
-
 	// Verify that all the required fields are present
 	if (req.body.name === undefined || req.body.email === undefined || req.body.password === undefined) {
 		res.status(400)
 		res.send("Missing information. Please include name, email, and password fields.")
 	}
 
-	const year = dateObj.getUTCFullYear()
-	const formattedMonth = ("0" + (dateObj.getMonth() + 1)).slice(-2)
-	const formattedDay = ("0" + dateObj.getDate()).slice(-2)
-	const dateString = `${year}-${formattedMonth}-${formattedDay}`
-
 	const salt = await bcrypt.genSalt(10)
 	const hash = await bcrypt.hash(req.body.password, salt)
 
-	// Create the account
-	db.query(`INSERT INTO account (
+	await registerNewUser(req.body.name, req.body.email, hash, salt)
+
+	res.status(201)
+	res.send("Account created.")
+})
+
+async function registerNewUser(name: String, email: String, passwordHash: String, passwordSalt: String) {
+	let dateTime = getDateTime()
+
+	// Create the account in the database
+	let accountInsertResult = await db.query(`INSERT INTO account (
 		name,
 		email,
 		password_hash,
 		password_salt
 	) VALUES (
-		'${req.body.name}',
-		'${req.body.email}',
-		'${hash}',
-		'${salt}'
-	)`)
+		'${name}',
+		'${email}',
+		'${passwordHash}',
+		'${passwordSalt}'
+	) RETURNING id`)
+	let accountId: Number = accountInsertResult.rows[0].id
 
-	res.status(201)
-	res.send("Account created.")
-})
+	// Create an inactive auth session for the account (to log the registration event)
+	let authSessionInsertResult = await db.query(`INSERT INTO auth_session (
+		account_id,
+		created_date,
+		created_time,
+		is_active
+	) VALUES (
+		${accountId},
+		'${dateTime.dateString}',
+		'${dateTime.timeString}',
+		FALSE
+	) RETURNING id`)
+	let authSessionId: Number = authSessionInsertResult.rows[0].id
+
+	// Log the registration event in the database
+	await logAccountEvent(db, authSessionId, AccountEventType.REGISTER, dateTime)
+}
 
 export default router

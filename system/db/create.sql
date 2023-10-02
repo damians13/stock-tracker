@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS auth_session (
 	account_id INTEGER NOT NULL,
 	created_date DATE,
 	created_time TIME,
-	is_active BOOLEAN,
+	is_active BOOLEAN NOT NULL,
 	FOREIGN KEY (account_id) REFERENCES account ON DELETE CASCADE
 );
 
@@ -75,12 +75,16 @@ CREATE TABLE IF NOT EXISTS held_share (
 CREATE TABLE IF NOT EXISTS log_event (
 	id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 	auth_session_id INTEGER NOT NULL,
+	created_date DATE NOT NULL,
+	created_time TIME NOT NULL,
+	log_message TEXT,
 	FOREIGN KEY (auth_session_id) REFERENCES auth_session ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS account_log_event (
 	id INTEGER PRIMARY KEY,
 	account_id INTEGER NOT NULL,
+	log_type TEXT NOT NULL,
 	FOREIGN KEY (id) REFERENCES log_event ON DELETE CASCADE,
 	FOREIGN KEY (account_id) REFERENCES account ON DELETE CASCADE
 );
@@ -89,6 +93,7 @@ CREATE TABLE IF NOT EXISTS portfolio_log_event (
 	id INTEGER PRIMARY KEY,
 	account_id INTEGER NOT NULL,
 	portfolio_name TEXT NOT NULL,
+	log_type TEXT NOT NULL,
 	FOREIGN KEY (id) REFERENCES log_event ON DELETE CASCADE,
 	FOREIGN KEY (account_id, portfolio_name) REFERENCES portfolio (account_id, portfolio_name) ON DELETE CASCADE
 );

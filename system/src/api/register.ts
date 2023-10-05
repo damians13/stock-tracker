@@ -62,7 +62,7 @@ async function registerNewUser(name: string, email: string, passwordHash: string
 
 	// Create the account in the database
 	let accountInsertResult = await db.query(`INSERT INTO account (
-		name,
+		client_name,
 		email,
 		password_hash,
 		password_salt

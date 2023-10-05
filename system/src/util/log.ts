@@ -20,31 +20,21 @@ export enum AccountEventType {
  */
 export async function logAccountEvent(db: Client, authSessionId: Number, eventType: AccountEventType, dateTime: DateTime = getDateTime(), message?: String): Promise<Number> {
 	let accountQueryResult = await db.query(`SELECT account_id FROM auth_session WHERE id = ${authSessionId}`)
-	let logInsertResult =
-		message !== undefined
-			? await db.query(
-					`INSERT INTO log_event (
-						auth_session_id,
-						created_date,
-						created_time,
-						log_message
-					) VALUES (
-						${authSessionId},
-						'${dateTime.dateString}',
-						'${dateTime.timeString}',
-						'${message}') RETURNING id`
-			  )
-			: await db.query(
-					`INSERT INTO log_event (
-						auth_session_id,
-						created_date,
-						created_time
-					) VALUES (
-						${authSessionId},
-						'${dateTime.dateString}',
-						'${dateTime.timeString}'
-					) RETURNING id`
-			  )
+
+	// Include the message as the log_message if it is given
+	let logInsertResult = await db.query(
+		`INSERT INTO log_event (
+			auth_session_id,
+			created_date,
+			created_time
+			${message !== undefined ? `, log_message` : ""}
+		) VALUES (
+			${authSessionId},
+			'${dateTime.dateString}',
+			'${dateTime.timeString}'
+			${message !== undefined ? ", '" + message + "'" : ""}
+		'}) RETURNING id`
+	)
 
 	let accountId: Number = accountQueryResult.rows[0].account_id
 	let logId: Number = logInsertResult.rows[0].id

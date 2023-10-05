@@ -11,8 +11,8 @@ router.post("/", async (req, res) => {
 
 	if (queryResponse.rowCount !== 0) {
 		// There is already a user registered with that email, log the registration attempt
-		let accountId: Number = queryResponse.rows[0].id
-		await handleDuplicateRegistrationEvent(accountId)
+		let accountId: number = queryResponse.rows[0].id
+		await handleDuplicateRegistrationEvent(accountId, req.socket.remoteAddress)
 
 		res.status(409)
 		res.send("There is already a user registered with that email address.")
@@ -29,31 +29,35 @@ router.post("/", async (req, res) => {
 	const salt = await bcrypt.genSalt(10)
 	const hash = await bcrypt.hash(req.body.password, salt)
 
-	await registerNewUser(req.body.name, req.body.email, hash, salt)
+	await registerNewUser(req.body.name, req.body.email, hash, salt, req.socket.remoteAddress)
 
 	res.status(201)
 	res.send("Account created.")
 })
 
-async function createInactiveSession(accountId: Number, dateTime: DateTime = getDateTime()): Promise<Number> {
+async function createInactiveSession(accountId: number, dateTime: DateTime = getDateTime(), ip?: string): Promise<number> {
 	let authSessionInsertResult = await db.query(`INSERT INTO auth_session (
 		account_id,
 		created_date,
 		created_time,
+		created_by_system,
+		${ip !== undefined ? " ip_address," : " "}
 		is_active
 	) VALUES (
 		${accountId},
 		'${dateTime.dateString}',
 		'${dateTime.timeString}',
+		TRUE,
+		${ip !== undefined ? " '" + ip + "'," : " "}
 		FALSE
 	) RETURNING id`)
 
-	let authSessionId: Number = authSessionInsertResult.rows[0].id
+	let authSessionId: number = authSessionInsertResult.rows[0].id
 
 	return authSessionId
 }
 
-async function registerNewUser(name: String, email: String, passwordHash: String, passwordSalt: String) {
+async function registerNewUser(name: string, email: string, passwordHash: string, passwordSalt: string, ip?: string) {
 	let dateTime = getDateTime()
 
 	// Create the account in the database
@@ -68,20 +72,20 @@ async function registerNewUser(name: String, email: String, passwordHash: String
 		'${passwordHash}',
 		'${passwordSalt}'
 	) RETURNING id`)
-	let accountId: Number = accountInsertResult.rows[0].id
+	let accountId: number = accountInsertResult.rows[0].id
 
 	// Create an inactive auth session for the account (to log the registration event)
-	let authSessionId = await createInactiveSession(accountId, dateTime)
+	let authSessionId = await createInactiveSession(accountId, dateTime, ip)
 
 	// Log the registration event in the database
 	await logAccountEvent(db, authSessionId, AccountEventType.REGISTER, dateTime)
 }
 
-async function handleDuplicateRegistrationEvent(accountId: Number) {
+async function handleDuplicateRegistrationEvent(accountId: number, ip?: string) {
 	let dateTime = getDateTime()
 
 	// Create an inactive auth session for the account (to log the duplicate registration attempt)
-	let authSessionId = await createInactiveSession(accountId, dateTime)
+	let authSessionId = await createInactiveSession(accountId, dateTime, ip)
 
 	// Log the duplicate registration attempt in the database
 	await logAccountEvent(db, authSessionId, AccountEventType.DUPLICATE_REGISTER_ATTEMPT, dateTime)

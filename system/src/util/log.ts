@@ -18,7 +18,7 @@ export enum AccountEventType {
  * @param message Message to go along with the log event in the database
  * @returns The id of the created log event
  */
-export async function logAccountEvent(db: Client, authSessionId: Number, eventType: AccountEventType, dateTime: DateTime = getDateTime(), message?: String): Promise<Number> {
+export async function logAccountEvent(db: Client, authSessionId: number, eventType: AccountEventType, dateTime: DateTime = getDateTime(), message?: string): Promise<number> {
 	let accountQueryResult = await db.query(`SELECT account_id FROM auth_session WHERE id = ${authSessionId}`)
 
 	// Include the message as the log_message if it is given
@@ -36,8 +36,8 @@ export async function logAccountEvent(db: Client, authSessionId: Number, eventTy
 		'}) RETURNING id`
 	)
 
-	let accountId: Number = accountQueryResult.rows[0].account_id
-	let logId: Number = logInsertResult.rows[0].id
+	let accountId: number = accountQueryResult.rows[0].account_id
+	let logId: number = logInsertResult.rows[0].id
 
 	await db.query(`INSERT INTO account_log_event (
 		id,

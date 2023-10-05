@@ -1,6 +1,17 @@
 import { Router } from "express"
 import db from "../util/db.js"
 import bcrypt from "bcrypt"
+import { DateTime, getDateTime } from "../util/dateTime.js"
+import { AccountEventType, logAccountEvent } from "../util/log.js"
+import { createNewActiveAuthSession, createNewInactiveSession } from "../util/sessions.js"
+
+interface Account {
+	id: number
+	client_name: string
+	email: string
+	password_hash: string
+	password_salt: string
+}
 
 const router = Router()
 
@@ -18,14 +29,20 @@ router.post("/", async (req, res) => {
 		return
 	}
 
-	const account = queryResponse.rows[0] // Since email is unique in the db
+	const account: Account = queryResponse.rows[0]
 
 	// Check if the supplied password is correct
 	const match = await bcrypt.compare(req.body.password, account.password_hash)
 
+	const dateTime = getDateTime()
+
 	if (match) {
-		res.send(`Logged in ${account.name}`)
+		let authSessionId = await createNewActiveAuthSession(account.id, dateTime, req.socket.remoteAddress)
+		await logAccountEvent(db, authSessionId, AccountEventType.LOGIN, dateTime)
+		res.send(`Logged in ${account.client_name}`)
 	} else {
+		let authSessionId = await createNewInactiveSession(account.id, dateTime, req.socket.remoteAddress)
+		await logAccountEvent(db, authSessionId, AccountEventType.FAILED_LOGIN_ATTEMPT, dateTime)
 		res.status(403)
 		res.send(`Incorrect password`)
 	}

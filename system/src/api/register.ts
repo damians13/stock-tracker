@@ -3,6 +3,7 @@ import db from "../util/db.js"
 import bcrypt from "bcrypt"
 import { AccountEventType, logAccountEvent } from "../util/log.js"
 import { DateTime, getDateTime } from "../util/dateTime.js"
+import { createNewInactiveSession } from "../util/sessions.js"
 
 const router = Router()
 
@@ -35,28 +36,6 @@ router.post("/", async (req, res) => {
 	res.send("Account created.")
 })
 
-async function createInactiveSession(accountId: number, dateTime: DateTime = getDateTime(), ip?: string): Promise<number> {
-	let authSessionInsertResult = await db.query(`INSERT INTO auth_session (
-		account_id,
-		created_date,
-		created_time,
-		created_by_system,
-		${ip !== undefined ? " ip_address," : " "}
-		is_active
-	) VALUES (
-		${accountId},
-		'${dateTime.dateString}',
-		'${dateTime.timeString}',
-		TRUE,
-		${ip !== undefined ? " '" + ip + "'," : " "}
-		FALSE
-	) RETURNING id`)
-
-	let authSessionId: number = authSessionInsertResult.rows[0].id
-
-	return authSessionId
-}
-
 async function registerNewUser(name: string, email: string, passwordHash: string, passwordSalt: string, ip?: string) {
 	let dateTime = getDateTime()
 
@@ -75,7 +54,7 @@ async function registerNewUser(name: string, email: string, passwordHash: string
 	let accountId: number = accountInsertResult.rows[0].id
 
 	// Create an inactive auth session for the account (to log the registration event)
-	let authSessionId = await createInactiveSession(accountId, dateTime, ip)
+	let authSessionId = await createNewInactiveSession(accountId, dateTime, ip)
 
 	// Log the registration event in the database
 	await logAccountEvent(db, authSessionId, AccountEventType.REGISTER, dateTime)
@@ -85,7 +64,7 @@ async function handleDuplicateRegistrationEvent(accountId: number, ip?: string) 
 	let dateTime = getDateTime()
 
 	// Create an inactive auth session for the account (to log the duplicate registration attempt)
-	let authSessionId = await createInactiveSession(accountId, dateTime, ip)
+	let authSessionId = await createNewInactiveSession(accountId, dateTime, ip)
 
 	// Log the duplicate registration attempt in the database
 	await logAccountEvent(db, authSessionId, AccountEventType.DUPLICATE_REGISTER_ATTEMPT, dateTime)

@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS auth_session (
 	account_id INTEGER NOT NULL,
 	created_date DATE,
 	created_time TIME,
+	created_by_system BOOLEAN DEFAULT false,
+	ip_address INET,
+	mac_address MACADDR,
 	is_active BOOLEAN NOT NULL,
 	FOREIGN KEY (account_id) REFERENCES account ON DELETE CASCADE
 );

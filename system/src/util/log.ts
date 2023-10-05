@@ -33,7 +33,7 @@ export async function logAccountEvent(db: Client, authSessionId: number, eventTy
 			'${dateTime.dateString}',
 			'${dateTime.timeString}'
 			${message !== undefined ? ", '" + message + "'" : ""}
-		'}) RETURNING id`
+		) RETURNING id`
 	)
 
 	let accountId: number = accountQueryResult.rows[0].account_id

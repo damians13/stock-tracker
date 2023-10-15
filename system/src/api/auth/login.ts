@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
 	if (match) {
 		let authSessionId = await createNewActiveAuthSession(account.id, dateTime, req.socket.remoteAddress)
 		await logAccountEvent(db, authSessionId, AccountEventType.LOGIN, dateTime)
-		res.send(`Logged in ${account.client_name}`)
+		res.json({ message: `Logged in ${account.client_name}`, authSessionId: authSessionId })
 	} else {
 		let authSessionId = await createNewInactiveSession(account.id, dateTime, req.socket.remoteAddress)
 		await logAccountEvent(db, authSessionId, AccountEventType.FAILED_LOGIN_ATTEMPT, dateTime)

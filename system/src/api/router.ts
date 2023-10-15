@@ -1,12 +1,8 @@
-import { json, Router } from "express"
-import loginRouter from "./login.js"
-import registerRouter from "./register.js"
+import { Router } from "express"
+import authRouter from "./auth/authRouter.js"
 
 const router = Router()
 
-router.use(json())
-
-router.use("/login", loginRouter)
-router.use("/register", registerRouter)
+router.use("/auth", authRouter)
 
 export default router

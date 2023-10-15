@@ -1,9 +1,9 @@
 import { Router } from "express"
-import db from "../util/db.js"
+import db from "../../util/db.js"
 import bcrypt from "bcrypt"
-import { DateTime, getDateTime } from "../util/dateTime.js"
-import { AccountEventType, logAccountEvent } from "../util/log.js"
-import { createNewActiveAuthSession, createNewInactiveSession } from "../util/sessions.js"
+import { DateTime, getDateTime } from "../../util/dateTime.js"
+import { AccountEventType, logAccountEvent } from "../../util/log.js"
+import { createNewActiveAuthSession, createNewInactiveSession } from "../../util/sessions.js"
 
 interface Account {
 	id: number

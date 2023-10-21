@@ -96,7 +96,7 @@ export async function logPortfolioEvent(
 	) VALUES (
 		${logId},
 		${accountId},
-		'${portfolioName}'
+		'${portfolioName}',
 		'${eventType}'
 	)`)
 

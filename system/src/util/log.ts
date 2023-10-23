@@ -10,23 +10,39 @@ export enum AccountEventType {
 	FAILED_LOGOUT_ATTEMPT = "FAILED_LOGOUT_ATTEMPT",
 }
 
+/**
+ * Current problem is that some of the portfolio log events don't relate to
+ * an existing portfolio, so the database returns a foreign key violation
+ *
+ * Need to figure out how to get around this properly
+ *  - Could remove the fkey constraint
+ *  - Could move these log events to general or account
+ *    - Maybe then add non-existing authSessionId logging to general
+ *      for account and portfolio?
+ */
+
 export enum PortfolioEventType {
 	NEW = "NEW",
 	DELETE = "DELETE",
 	RENAME = "RENAME",
-	ATTEMPTED_NEW_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_NEW_PORTFOLIO_INACTIVE_SESSION",
 	ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME = "ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME",
-	ATTEMPTED_DELETE_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_DELETE_PORTFOLIO_INACTIVE_SESSION",
-	ATTEMPTED_DELETE_PORTFOLIO_NOT_FOUND = "ATTEMPTED_DELETE_PORTFOLIO_NOT_FOUND",
-	ATTEMPTED_RENAME_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_RENAME_PORTFOLIO_INACTIVE_SESSION",
-	ATTEMPTED_RENAME_PORTFOLIO_NOT_FOUND = "ATTEMPTED_RENAME_PORTFOLIO_NOT_FOUND",
 }
+
+// export enum GenericLogEventType {
+// 	ATTEMPTED_LOGOUT_SESSION_NOT_FOUND = "ATTEMPTED_LOGOUT_SESSION_NOT_FOUND",
+// 	ATTEMPTED_NEW_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_NEW_PORTFOLIO_INACTIVE_SESSION",
+// 	ATTEMPTED_DELETE_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_DELETE_PORTFOLIO_INACTIVE_SESSION",
+// 	ATTEMPTED_RENAME_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_RENAME_PORTFOLIO_INACTIVE_SESSION",
+// 	ATTEMPTED_DELETE_PORTFOLIO_NOT_FOUND = "ATTEMPTED_DELETE_PORTFOLIO_NOT_FOUND",
+// 	ATTEMPTED_RENAME_PORTFOLIO_NOT_FOUND = "ATTEMPTED_RENAME_PORTFOLIO_NOT_FOUND",
+// }
 
 /**
  * Log information about an account to the database
  * @param db Database client connection
  * @param authSessionId ID of the auth session that created the logged event
  * @param eventType The type of the logged event
+ * @param dateTime The date and time of the event
  * @param message Message to go along with the log event in the database
  * @returns The id of the created log event
  */
@@ -64,6 +80,16 @@ export async function logAccountEvent(db: Client, authSessionId: number, eventTy
 	return logId
 }
 
+/**
+ * Log information about a portfolio to the database
+ * @param db Database client connection
+ * @param authSessionId ID of the auth session that created the logged event
+ * @param portfolioName The name of the portfolio that the event is associated with
+ * @param eventType The type of the logged event
+ * @param dateTime The date and time of the event
+ * @param message Message to go along with the log event in the database
+ * @returns The id of the created log event
+ */
 export async function logPortfolioEvent(
 	db: Client,
 	authSessionId: number,
@@ -102,6 +128,40 @@ export async function logPortfolioEvent(
 		${accountId},
 		'${portfolioName}',
 		'${eventType}'
+	)`)
+
+	return logId
+}
+
+/**
+ * Log information about a generic event to the database
+ * @param db Database client connection
+ * @param authSessionId ID of the auth session that created the logged event
+ * @param message Message to go along with the log event in the database
+ * @param dateTime The date and time of the event
+ * @returns The id of the created log event
+ */
+export async function logGenericEvent(db: Client, authSessionId: number, message: string, dateTime: DateTime = getDateTime()): Promise<number> {
+	let logInsertResult = await db.query(
+		`INSERT INTO log_event (
+			auth_session_id,
+			created_date,
+			created_time,
+			log_message
+		) VALUES (
+			${authSessionId},
+			'${dateTime.dateString}',
+			'${dateTime.timeString}',
+			${message}
+		) RETURNING id`
+	)
+
+	let logId: number = logInsertResult.rows[0].id
+
+	await db.query(`INSERT INTO generic_log_event (
+		id
+	) VALUES (
+		${logId},
 	)`)
 
 	return logId

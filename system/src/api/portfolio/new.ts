@@ -1,5 +1,7 @@
 import { Router } from "express"
 import db from "../../util/db.js"
+import { PortfolioEventType, logPortfolioEvent } from "../../util/log.js"
+import { getDateTime } from "../../util/dateTime.js"
 
 const router = Router()
 
@@ -20,6 +22,7 @@ router.post("/", async (req, res) => {
 	}
 
 	const isActive: boolean = authQueryResponse.rows[0].is_active
+	const dateTime = getDateTime()
 
 	if (!isActive) {
 		// The given auth session is inactive
@@ -40,6 +43,7 @@ router.post("/", async (req, res) => {
 
 		if (usedPortfolioNames.includes(req.body.portfolioName)) {
 			// The account already has a portfolio with the requested name
+			await logPortfolioEvent(db, req.body.authSessionId, req.body.portfolioName, PortfolioEventType.ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME, dateTime)
 
 			res.status(409)
 			res.send(`${clientName} already has a portfolio named "${req.body.portfolioName}".`)
@@ -54,6 +58,8 @@ router.post("/", async (req, res) => {
 		${accountId},
 		'${req.body.portfolioName}'
 	)`)
+
+	await logPortfolioEvent(db, req.body.authSessionId, req.body.portfolioName, PortfolioEventType.NEW, dateTime)
 
 	res.send(`Created a portfolio named "${req.body.portfolioName}" for ${clientName}.`)
 })

@@ -1,7 +1,8 @@
 import { Router, query } from "express"
 import db from "../../util/db.js"
-import { AccountEventType, logAccountEvent } from "../../util/log.js"
+import { AccountEventType, AuthSessionIdIssueEventType, logAccountEvent, logGenericEvent, logInvalidAuthSessionId } from "../../util/log.js"
 import { getDateTime } from "../../util/dateTime.js"
+import { createNewInactiveSession } from "../../util/sessions.js"
 
 const router = Router()
 
@@ -14,6 +15,8 @@ router.post("/", async (req, res) => {
 
 	if (queryResponse.rowCount === 0) {
 		// Invalid authSessionId
+		await logInvalidAuthSessionId(db, req.body.authSessionId, AuthSessionIdIssueEventType.LOGOUT, req.socket.remoteAddress)
+
 		res.status(404)
 		res.send("There is no auth session with that ID.")
 		return

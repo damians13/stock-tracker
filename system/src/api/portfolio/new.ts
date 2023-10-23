@@ -1,6 +1,6 @@
 import { Router } from "express"
 import db from "../../util/db.js"
-import { PortfolioEventType, logPortfolioEvent } from "../../util/log.js"
+import { AuthSessionIdIssueEventType, PortfolioEventType, logGenericEvent, logInvalidAuthSessionId, logPortfolioEvent } from "../../util/log.js"
 import { getDateTime } from "../../util/dateTime.js"
 
 const router = Router()
@@ -16,16 +16,19 @@ router.post("/", async (req, res) => {
 
 	if (authQueryResponse.rowCount === 0) {
 		// Invalid authSessionId
+		await logInvalidAuthSessionId(db, req.body.authSessionId, AuthSessionIdIssueEventType.NEW_PORTFOLIO, req.socket.remoteAddress)
+
 		res.status(404)
 		res.send("There is no auth session with that ID.")
 		return
 	}
 
 	const isActive: boolean = authQueryResponse.rows[0].is_active
-	const dateTime = getDateTime()
 
 	if (!isActive) {
 		// The given auth session is inactive
+		await logGenericEvent(db, req.body.authSessionId, `Attempted to create a new portfolio "${req.body.portfolioName}", but the auth session is inactive`)
+
 		res.status(403)
 		res.send("The auth session with the given ID is inactive.")
 		return
@@ -33,6 +36,7 @@ router.post("/", async (req, res) => {
 
 	const accountId: number = authQueryResponse.rows[0].account_id
 	const clientName: string = authQueryResponse.rows[0].client_name
+	const dateTime = getDateTime()
 
 	let usedPortfolioNamesResponse = await db.query(`SELECT portfolio_name FROM portfolio WHERE account_id = ${accountId}`)
 	if (authQueryResponse.rowCount !== 0) {

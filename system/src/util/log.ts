@@ -1,5 +1,6 @@
 import { Client } from "pg"
 import { DateTime, getDateTime } from "./dateTime.js"
+import { createNewInactiveSession } from "./sessions.js"
 
 export enum AccountEventType {
 	REGISTER = "REGISTER",
@@ -28,14 +29,12 @@ export enum PortfolioEventType {
 	ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME = "ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME",
 }
 
-// export enum GenericLogEventType {
-// 	ATTEMPTED_LOGOUT_SESSION_NOT_FOUND = "ATTEMPTED_LOGOUT_SESSION_NOT_FOUND",
-// 	ATTEMPTED_NEW_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_NEW_PORTFOLIO_INACTIVE_SESSION",
-// 	ATTEMPTED_DELETE_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_DELETE_PORTFOLIO_INACTIVE_SESSION",
-// 	ATTEMPTED_RENAME_PORTFOLIO_INACTIVE_SESSION = "ATTEMPTED_RENAME_PORTFOLIO_INACTIVE_SESSION",
-// 	ATTEMPTED_DELETE_PORTFOLIO_NOT_FOUND = "ATTEMPTED_DELETE_PORTFOLIO_NOT_FOUND",
-// 	ATTEMPTED_RENAME_PORTFOLIO_NOT_FOUND = "ATTEMPTED_RENAME_PORTFOLIO_NOT_FOUND",
-// }
+export enum AuthSessionIdIssueEventType {
+	LOGOUT = "LOGIN",
+	NEW_PORTFOLIO = "NEW_PORTFOLIO",
+	DELETE_PORTFOLIO = "DELETE_PORTFOLIO",
+	RENAME_PORTFOLIO = "RENAME_PORTFOLIO",
+}
 
 /**
  * Log information about an account to the database
@@ -165,4 +164,18 @@ export async function logGenericEvent(db: Client, authSessionId: number, message
 	)`)
 
 	return logId
+}
+
+export async function logInvalidAuthSessionId(
+	db: Client,
+	invalidAuthSessionId: number,
+	eventType: AuthSessionIdIssueEventType,
+	ip: string | undefined,
+	dateTime: DateTime = getDateTime()
+) {
+	// Create an inactive system auth session
+	const authSessionId = await createNewInactiveSession(0, dateTime, ip)
+
+	// Log the event
+	await logGenericEvent(db, authSessionId, `Attempted ${eventType} with invalid authSessionId: ${invalidAuthSessionId}`, dateTime)
 }

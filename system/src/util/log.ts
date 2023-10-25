@@ -11,20 +11,8 @@ export enum AccountEventType {
 	FAILED_LOGOUT_ATTEMPT = "FAILED_LOGOUT_ATTEMPT",
 }
 
-/**
- * Current problem is that some of the portfolio log events don't relate to
- * an existing portfolio, so the database returns a foreign key violation
- *
- * Need to figure out how to get around this properly
- *  - Could remove the fkey constraint
- *  - Could move these log events to general or account
- *    - Maybe then add non-existing authSessionId logging to general
- *      for account and portfolio?
- */
-
 export enum PortfolioEventType {
 	NEW = "NEW",
-	DELETE = "DELETE",
 	RENAME = "RENAME",
 	ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME = "ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME",
 }
@@ -151,7 +139,7 @@ export async function logGenericEvent(db: Client, authSessionId: number, message
 			${authSessionId},
 			'${dateTime.dateString}',
 			'${dateTime.timeString}',
-			${message}
+			'${message}'
 		) RETURNING id`
 	)
 
@@ -160,7 +148,7 @@ export async function logGenericEvent(db: Client, authSessionId: number, message
 	await db.query(`INSERT INTO generic_log_event (
 		id
 	) VALUES (
-		${logId},
+		${logId}
 	)`)
 
 	return logId

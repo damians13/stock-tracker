@@ -15,10 +15,6 @@ interface Account {
 
 const router = Router()
 
-router.get("/", (req, res) => {
-	res.send("Login time")
-})
-
 router.post("/", async (req, res) => {
 	let queryResponse = await db.query(`SELECT * FROM account WHERE EMAIL = '${req.body.email}'`)
 

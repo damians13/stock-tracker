@@ -5,10 +5,6 @@ import { getDateTime } from "../../util/dateTime.js"
 
 const router = Router()
 
-router.get("/", (req, res) => {
-	res.send("Create a new portfolio")
-})
-
 router.post("/", async (req, res) => {
 	let authQueryResponse = await db.query(
 		`SELECT au.is_active, au.account_id, ac.client_name FROM auth_session au JOIN account ac ON au.account_id = ac.id WHERE au.id = ${req.body.authSessionId}`

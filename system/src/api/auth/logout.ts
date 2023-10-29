@@ -6,10 +6,6 @@ import { createNewInactiveSession } from "../../util/sessions.js"
 
 const router = Router()
 
-router.get("/", (req, res) => {
-	res.send("Logout time")
-})
-
 router.post("/", async (req, res) => {
 	let queryResponse = await db.query(`SELECT email, is_active, client_name FROM account ac JOIN auth_session au ON au.account_id = ac.id WHERE au.id = ${req.body.authSessionId}`)
 

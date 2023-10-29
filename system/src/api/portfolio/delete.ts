@@ -1,7 +1,7 @@
 import { Router } from "express"
 import db from "../../util/db.js"
 import { AuthSessionIdIssueEventType, logGenericEvent, logInvalidAuthSessionId } from "../../util/log.js"
-import { getDateTime } from "../../util/dateTime.js"
+import { DateTime, getDateTime } from "../../util/dateTime.js"
 
 const router = Router()
 
@@ -50,10 +50,17 @@ router.post("/", async (req, res) => {
 
 	const clientName: string = authQueryResponse.rows[0].client_name
 
-	await db.query(`DELETE FROM portfolio WHERE account_id = ${accountId} AND portfolio_name = '${req.body.portfolioName}'`)
-	await logGenericEvent(db, req.body.authSessionId, `Deleted portfolio "${req.body.portfolioName}"`, dateTime)
+	await deletePortfolio(accountId, req.body.portfolioName, req.body.authSessionId, dateTime)
 
 	res.send(`Deleted the portfolio named "${req.body.portfolioName}" for ${clientName}`)
 })
+
+async function deletePortfolio(accountId: number, portfolioName: string, authSessionId: number, dateTime: DateTime = getDateTime()) {
+	// Delete the portfolio
+	await db.query(`DELETE FROM portfolio WHERE account_id = ${accountId} AND portfolio_name = '${portfolioName}'`)
+
+	// Log the delete event
+	await logGenericEvent(db, authSessionId, `Deleted portfolio "${portfolioName}"`, dateTime)
+}
 
 export default router

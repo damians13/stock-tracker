@@ -1,5 +1,6 @@
 import { Client } from "pg"
 import { DateTime, getDateTime } from "./dateTime.js"
+import { createNewInactiveSession } from "./sessions.js"
 
 export enum AccountEventType {
 	REGISTER = "REGISTER",
@@ -8,14 +9,19 @@ export enum AccountEventType {
 	LOGOUT = "LOGOUT",
 	FAILED_LOGIN_ATTEMPT = "FAILED_LOGIN_ATTEMPT",
 	FAILED_LOGOUT_ATTEMPT = "FAILED_LOGOUT_ATTEMPT",
-	CREATE_PORTFOLIO = "CREATE_PORTFOLIO",
-	DETELE_PORTFOLIO = "DELETE_PORTFOLIO",
 }
 
 export enum PortfolioEventType {
 	NEW = "NEW",
-	DELETE = "DELETE",
 	RENAME = "RENAME",
+	ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME = "ATTEMPTED_NEW_PORTFOLIO_DUPLICATE_NAME",
+}
+
+export enum AuthSessionIdIssueEventType {
+	LOGOUT = "LOGIN",
+	NEW_PORTFOLIO = "NEW_PORTFOLIO",
+	DELETE_PORTFOLIO = "DELETE_PORTFOLIO",
+	RENAME_PORTFOLIO = "RENAME_PORTFOLIO",
 }
 
 /**
@@ -23,6 +29,7 @@ export enum PortfolioEventType {
  * @param db Database client connection
  * @param authSessionId ID of the auth session that created the logged event
  * @param eventType The type of the logged event
+ * @param dateTime The date and time of the event
  * @param message Message to go along with the log event in the database
  * @returns The id of the created log event
  */
@@ -60,6 +67,16 @@ export async function logAccountEvent(db: Client, authSessionId: number, eventTy
 	return logId
 }
 
+/**
+ * Log information about a portfolio to the database
+ * @param db Database client connection
+ * @param authSessionId ID of the auth session that created the logged event
+ * @param portfolioName The name of the portfolio that the event is associated with
+ * @param eventType The type of the logged event
+ * @param dateTime The date and time of the event
+ * @param message Message to go along with the log event in the database
+ * @returns The id of the created log event
+ */
 export async function logPortfolioEvent(
 	db: Client,
 	authSessionId: number,
@@ -101,4 +118,52 @@ export async function logPortfolioEvent(
 	)`)
 
 	return logId
+}
+
+/**
+ * Log information about a generic event to the database
+ * @param db Database client connection
+ * @param authSessionId ID of the auth session that created the logged event
+ * @param message Message to go along with the log event in the database
+ * @param dateTime The date and time of the event
+ * @returns The id of the created log event
+ */
+export async function logGenericEvent(db: Client, authSessionId: number, message: string, dateTime: DateTime = getDateTime()): Promise<number> {
+	let logInsertResult = await db.query(
+		`INSERT INTO log_event (
+			auth_session_id,
+			created_date,
+			created_time,
+			log_message
+		) VALUES (
+			${authSessionId},
+			'${dateTime.dateString}',
+			'${dateTime.timeString}',
+			'${message}'
+		) RETURNING id`
+	)
+
+	let logId: number = logInsertResult.rows[0].id
+
+	await db.query(`INSERT INTO generic_log_event (
+		id
+	) VALUES (
+		${logId}
+	)`)
+
+	return logId
+}
+
+export async function logInvalidAuthSessionId(
+	db: Client,
+	invalidAuthSessionId: number,
+	eventType: AuthSessionIdIssueEventType,
+	ip: string | undefined,
+	dateTime: DateTime = getDateTime()
+) {
+	// Create an inactive system auth session
+	const authSessionId = await createNewInactiveSession(0, dateTime, ip)
+
+	// Log the event
+	await logGenericEvent(db, authSessionId, `Attempted ${eventType} with invalid authSessionId: ${invalidAuthSessionId}`, dateTime)
 }

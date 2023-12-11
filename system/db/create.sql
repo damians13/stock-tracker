@@ -28,10 +28,9 @@ CREATE TABLE IF NOT EXISTS auth_session (
 );
 
 CREATE TABLE IF NOT EXISTS stock (
-	id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-	ticker TEXT NOT NULL,
+	ticker TEXT PRIMARY KEY,
 	exchange TEXT NOT NULL,
-	company_name TEXT
+	company_name TEXT,
 );
 
 CREATE TABLE IF NOT EXISTS historical_stock_price (
